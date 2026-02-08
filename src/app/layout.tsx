@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import Link from "next/link";
+import { LayoutDashboard, Github, MessageSquare, Terminal, BookOpen } from "lucide-react";
+
+import OnboardingModal from "./components/OnboardingModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,12 +25,43 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const navLinkClass = "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all";
+
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-50 dark:bg-black`}>
+        <OnboardingModal />
+        <div className="flex min-h-screen">
+          {/* Sidebar Navigation */}
+          <aside className="w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col fixed h-full z-10">
+            <div className="p-6 border-b border-zinc-100 dark:border-zinc-900">
+              <div className="flex items-center gap-2 font-bold text-xl text-zinc-900 dark:text-zinc-100">
+                <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                  <BookOpen className="h-5 w-5" />
+                </div>
+                LivingDocs
+              </div>
+            </div>
+            
+            <nav className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
+              <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2 px-3 mt-2">Platform</div>
+              <Link href="/dashboard" className={navLinkClass}><LayoutDashboard className="h-4 w-4" /> Dashboard</Link>
+              <Link href="/repo-link" className={navLinkClass}><Github className="h-4 w-4" /> Link Repository</Link>
+              <Link href="/chat" className={navLinkClass}><MessageSquare className="h-4 w-4" /> Chat with Codebase</Link>
+              <Link href="/api-playground" className={navLinkClass}><Terminal className="h-4 w-4" /> API Playground</Link>
+            </nav>
+
+            <div className="p-4 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-100 dark:border-blue-800">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100 text-sm mb-1">Quick Tip</h3>
+                <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                  Push code to your repo to trigger automatic documentation updates.
+                </p>
+              </div>
+            </div>
+          </aside>
+          <main className="flex-1 min-h-screen ml-64 bg-zinc-50 dark:bg-black">{children}</main>
+        </div>
       </body>
     </html>
   );
