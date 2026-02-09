@@ -44,7 +44,7 @@ jobs:
       - name: Install backend dependencies
         run: |
           cd backend
-          pip install fastapi celery redis
+          pip install fastapi celery redis pytest httpx
       - name: Run backend tests
         run: |
           cd backend

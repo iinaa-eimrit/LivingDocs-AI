@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Play, Server, Code2 } from "lucide-react";
+import { Play, Terminal, Code2 } from "lucide-react";
 
 type OpenAPISchema = {
   paths: Record<string, Record<string, unknown>>;
@@ -57,8 +57,10 @@ export default function ApiPlaygroundPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-sm border border-zinc-200 dark:border-zinc-800">
-              <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Endpoint</label>
+              <label htmlFor="endpoint-select" className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Endpoint</label>
               <select
+                id="endpoint-select"
+                aria-label="Endpoint"
                 value={endpoint}
                 onChange={e => setEndpoint(e.target.value)}
                 className="w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
@@ -95,7 +97,7 @@ export default function ApiPlaygroundPage() {
           </div>
           
           <div className="lg:col-span-2">
-            <div className="bg-[#1e1e1e] rounded-2xl shadow-lg overflow-hidden border border-zinc-800 h-[600px] flex flex-col">
+            <div className="bg-[#1e1e1e] rounded-2xl shadow-lg overflow-hidden border border-zinc-800 h-150 flex flex-col">
               <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-[#252526]">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1.5">
