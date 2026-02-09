@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '20'
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
       - name: Build frontend
         run: npm run build
       - name: Set up Python
@@ -42,12 +42,15 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install backend dependencies
+        working-directory: backend
         run: |
-          cd backend
           pip install fastapi celery redis pytest httpx
       - name: Run backend tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/livingdocs
+          REDIS_URL: redis://localhost:6379/0
         run: |
-          cd backend
           pytest || echo "No tests yet"
       - name: Run frontend tests
         run: npm test || echo "No tests yet"
