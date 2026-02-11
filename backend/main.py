@@ -1,13 +1,24 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+try:
+    from openai import AsyncOpenAI  # type: ignore
+except ImportError:
+    AsyncOpenAI = None
 
 app = FastAPI(
     title="LivingDocs AI Backend",
     description="API for Autonomous Documentation Platform",
     version="0.1.0"
 )
+
+# Initialize OpenAI Client
+if AsyncOpenAI:
+    client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+else:
+    client = None
 
 # Configure CORS for Frontend (Next.js running on localhost:3000)
 app.add_middleware(
@@ -22,10 +33,18 @@ class ChatRequest(BaseModel):
     query: str
     repo_id: Optional[str] = None
 
+class Commit(BaseModel):
+    id: str
+    message: str
+    author: Dict[str, Any]
+    added: List[str] = []
+    modified: List[str] = []
+    removed: List[str] = []
+
 class WebhookPayload(BaseModel):
     ref: str
     repository: Dict[str, Any]
-    commits: list
+    commits: List[Commit]
 
 @app.get("/")
 async def root():
@@ -34,36 +53,57 @@ async def root():
 @app.post("/chat")
 async def chat_with_codebase(request: ChatRequest):
     """
-    Phase 2/3: RAG Interface.
-    In a real implementation, this would:
-    1. Vectorize the query.
-    2. Search pgvector for relevant code chunks.
-    3. Send context + query to GPT-4o.
+    Phase 2: RAG Interface (Connected to LLM).
     """
-    # Mock response for MVP
-    return {
-        "answer": f"I analyzed your codebase regarding '{request.query}'. \n\n"
-                  "Based on `auth/middleware.py`, the validation logic checks for the `X-API-Key` header. "
-                  "If missing, it raises a 401 Unauthorized error.\n\n"
-                  "Would you like me to generate a sequence diagram for this flow?",
-        "sources": ["src/auth/middleware.py", "src/config/security.ts"]
-    }
+    try:
+        # In a full RAG implementation, we would search pgvector here 
+        # and append relevant code chunks to the system prompt.
+        
+        if not client:
+            return {
+                "answer": "OpenAI client is not initialized. Please ensure the 'openai' package is installed and configured.",
+                "sources": []
+            }
+        
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are LivingDocs AI, an autonomous documentation assistant. Answer questions about the codebase clearly and concisely."},
+                {"role": "user", "content": request.query}
+            ]
+        )
+        
+        return {
+            "answer": response.choices[0].message.content,
+            "sources": [] # Placeholder for RAG sources
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/webhooks/github")
-async def github_webhook(payload: Dict[str, Any]):
+async def github_webhook(payload: WebhookPayload):
     """
     Phase 3: Ingestion Engine.
-    Receives push events from GitHub, triggers AST parsing and Doc generation.
+    Parses incoming commits to identify modified files for documentation updates.
     """
-    # In production, verify X-Hub-Signature header here
+    repo_name = payload.repository.get('full_name', 'Unknown Repo')
+    print(f"Received push event for {repo_name}")
     
-    if "commits" in payload:
-        print(f"Received push event for {payload.get('repository', {}).get('full_name')}")
-        # Trigger Celery task here:
-        # process_repository_changes.delay(payload)
-        return {"status": "processing", "message": "Ingestion started"}
+    changed_files = set()
+    for commit in payload.commits:
+        # Aggregate all added and modified files
+        changed_files.update(commit.added)
+        changed_files.update(commit.modified)
     
-    return {"status": "ignored", "message": "Not a push event"}
+    if changed_files:
+        # Trigger Celery task here: process_files.delay(list(changed_files))
+        return {
+            "status": "processing", 
+            "message": f"Identified {len(changed_files)} files for documentation update",
+            "files": list(changed_files)
+        }
+    
+    return {"status": "ignored", "message": "No relevant file changes detected"}
 
 if __name__ == "__main__":
     import uvicorn
