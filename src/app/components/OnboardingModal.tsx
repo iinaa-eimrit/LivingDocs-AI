@@ -1,39 +1,58 @@
 "use client";
+
 import { useState, useEffect } from "react";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Stepper, Step, StepLabel, Typography, Box, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 
 const steps = [
   {
     title: "Welcome to LivingDocs AI!",
     content: (
-      <>
-        <p className="mb-2">This platform automates your documentation workflow using AI.</p>
-        <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-200">
-          <li>Auto-generates and updates docs with every code change</li>
-          <li>Creates PRs for documentation updates</li>
-          <li>Lets you chat with your codebase and test APIs</li>
-        </ul>
-      </>
+      <Box>
+        <Typography mb={2}>This platform automates your documentation workflow using AI.</Typography>
+        <List dense>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
+            <ListItemText primary="Auto-generates and updates docs with every code change" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
+            <ListItemText primary="Creates PRs for documentation updates" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="primary" /></ListItemIcon>
+            <ListItemText primary="Lets you chat with your codebase and test APIs" />
+          </ListItem>
+        </List>
+      </Box>
     ),
+    icon: <RocketLaunchIcon color="primary" fontSize="large" />,
   },
   {
     title: "How to Get Started",
     content: (
-      <ol className="list-decimal pl-5 text-sm text-zinc-700 dark:text-zinc-200 space-y-1">
-        <li>Link your GitHub repository from the sidebar.</li>
-        <li>Push code changes to trigger doc updates.</li>
-        <li>Review and merge PRs for docs.</li>
-        <li>Use Chat and API Playground for more features.</li>
-      </ol>
+      <Box>
+        <List dense>
+          <ListItem><ListItemText primary="Link your GitHub repository from the sidebar." /></ListItem>
+          <ListItem><ListItemText primary="Push code changes to trigger doc updates." /></ListItem>
+          <ListItem><ListItemText primary="Review and merge PRs for docs." /></ListItem>
+          <ListItem><ListItemText primary="Use Chat and API Playground for more features." /></ListItem>
+        </List>
+      </Box>
     ),
+    icon: <CheckCircleIcon color="primary" fontSize="large" />,
   },
   {
     title: "Need Help?",
     content: (
-      <>
-        <p className="mb-2">Each page has a <b>help</b> button (<svg className="inline" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M12 16v-1m0-7a3 3 0 0 1 3 3c0 1.5-1.5 2-2.25 2.25-.75.25-.75.75-.75 1.25v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>) for quick tips.</p>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">You can revisit this onboarding anytime from the dashboard.</p>
-      </>
+      <Box>
+        <Typography mb={1}>Each page has a <b>help</b> button <HelpOutlineIcon fontSize="small" /> for quick tips.</Typography>
+        <Typography variant="body2" color="text.secondary">You can revisit this onboarding anytime from the dashboard.</Typography>
+      </Box>
     ),
+    icon: <HelpOutlineIcon color="primary" fontSize="large" />,
   },
 ];
 
@@ -56,27 +75,34 @@ export default function OnboardingModal() {
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-fade-in">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl p-8 max-w-md w-full animate-fade-in">
-        <h2 className="text-xl font-bold mb-2 text-blue-700 dark:text-blue-300">{steps[step].title}</h2>
-        <div className="mb-4">{steps[step].content}</div>
-        <div className="flex justify-between items-center">
-          <button
-            className="text-sm text-zinc-500 hover:underline"
-            onClick={close}
-          >Skip</button>
-          <div className="flex gap-2">
-            {step > 0 && (
-              <button className="rounded bg-zinc-200 dark:bg-zinc-700 px-3 py-1 text-sm" onClick={() => setStep(s => s - 1)}>Back</button>
-            )}
-            {step < steps.length - 1 ? (
-              <button className="rounded bg-blue-600 text-white px-4 py-1 text-sm font-semibold hover:bg-blue-700" onClick={() => setStep(s => s + 1)}>Next</button>
-            ) : (
-              <button className="rounded bg-green-600 text-white px-4 py-1 text-sm font-semibold hover:bg-green-700" onClick={close}>Finish</button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <Dialog open={open} onClose={close} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ textAlign: 'center', fontWeight: 700, fontSize: 24, pb: 0 }}>
+        {steps[step].icon}
+        <Box mt={1}>{steps[step].title}</Box>
+      </DialogTitle>
+      <DialogContent>
+        <Stepper activeStep={step} alternativeLabel sx={{ mb: 3 }}>
+          {steps.map((s, i) => (
+            <Step key={i} completed={step > i}>
+              <StepLabel></StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        {steps[step].content}
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+        <Button onClick={close} color="inherit">Skip</Button>
+        <Box>
+          {step > 0 && (
+            <Button onClick={() => setStep(s => s - 1)} sx={{ mr: 1 }}>Back</Button>
+          )}
+          {step < steps.length - 1 ? (
+            <Button variant="contained" onClick={() => setStep(s => s + 1)}>Next</Button>
+          ) : (
+            <Button variant="contained" color="success" onClick={close}>Finish</Button>
+          )}
+        </Box>
+      </DialogActions>
+    </Dialog>
   );
 }
